@@ -4,58 +4,96 @@
  */
 package project;
 
-/**
- *
- * @author akshi
- */
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
-
+ 
 public class Blackjack {
     public static void main(String[] args) {
-        Deck deck = new Deck();
-        Hand playerHand = new Hand();
-        Hand dealerHand = new Hand();
         Scanner scanner = new Scanner(System.in);
+        int numberOfPlayers = getNumberOfPlayers(scanner);
+        List<Player> players = getPlayers(numberOfPlayers, scanner);
 
- 
-        initialDeal(playerHand, dealerHand, deck);
+        Deck deck = new Deck();
+        List<Hand> playerHands = new ArrayList<>();
+        for (Player player : players) {
+            playerHands.add(new Hand());
+        }
+        Hand dealerHand = new Hand();
+
+        initialDeal(playerHands, dealerHand, deck);
 
         System.out.println("Dealer's hand: " + dealerHand);
-        System.out.println("Player's hand: " + playerHand);
+        for (int i = 0; i < players.size(); i++) {
+            System.out.println(players.get(i).getName() + "'s hand: " + playerHands.get(i));
+        }
 
-     
-        playerTurn(playerHand, deck, scanner);
+        for (int i = 0; i < players.size(); i++) {
+            playerTurn(players.get(i), playerHands.get(i), deck, scanner);
+        }
 
-       
-        if (!playerHand.isBust()) {
+        if (playerHands.stream().noneMatch(Hand::isBust)) {
             dealerTurn(dealerHand, deck);
         }
 
-        
-        determineWinner(playerHand, dealerHand);
+        determineWinners(players, playerHands, dealerHand);
 
         scanner.close();
     }
 
-    private static void initialDeal(Hand playerHand, Hand dealerHand, Deck deck) {
-        playerHand.addCard(deck.draw());
-        playerHand.addCard(deck.draw());
+    private static int getNumberOfPlayers(Scanner scanner) {
+        int numberOfPlayers;
+        while (true) {
+            System.out.print("Enter the number of players (1-5): ");
+            numberOfPlayers = scanner.nextInt();
+            scanner.nextLine(); // consume the newline
+            if (numberOfPlayers >= 1 && numberOfPlayers <= 5) {
+                break;
+            } else {
+                System.out.println("Invalid number of players. Please enter a number between 1 and 5.");
+            }
+        }
+        return numberOfPlayers;
+    }
+
+    private static List<Player> getPlayers(int numberOfPlayers, Scanner scanner) {
+        List<Player> players = new ArrayList<>();
+        for (int i = 0; i < numberOfPlayers; i++) {
+            String playerName;
+            while (true) {
+                System.out.print("Enter name for player " + (i + 1) + ": ");
+                playerName = scanner.nextLine();
+                if (playerName.matches("[a-zA-Z]+")) {
+                    players.add(new Player(playerName));
+                    break;
+                } else {
+                    System.out.println("Invalid name. Name cannot contain numbers or special characters.");
+                }
+            }
+        }
+        return players;
+    }
+
+    private static void initialDeal(List<Hand> playerHands, Hand dealerHand, Deck deck) {
+        for (Hand playerHand : playerHands) {
+            playerHand.addCard(deck.draw());
+            playerHand.addCard(deck.draw());
+        }
         dealerHand.addCard(deck.draw());
         dealerHand.addCard(deck.draw());
     }
 
-    private static void playerTurn(Hand playerHand, Deck deck, Scanner scanner) {
+    private static void playerTurn(Player player, Hand playerHand, Deck deck, Scanner scanner) {
         while (true) {
-            System.out.print("Hit or Stand? (h/s): ");
+            System.out.print(player.getName() + ", Hit or Stand? (h/s): ");
             String action = scanner.nextLine();
 
             if (action.equalsIgnoreCase("h")) {
                 playerHand.addCard(deck.draw());
-                System.out.println("Player's hand: " + playerHand);
+                System.out.println(player.getName() + "'s hand: " + playerHand);
 
                 if (playerHand.isBust()) {
-                    System.out.println("Player busts! Dealer wins.");
+                    System.out.println(player.getName() + " busts! Dealer wins.");
                     break;
                 }
             } else if (action.equalsIgnoreCase("s")) {
@@ -72,25 +110,33 @@ public class Blackjack {
             System.out.println("Dealer's hand: " + dealerHand);
 
             if (dealerHand.isBust()) {
-                System.out.println("Dealer busts! Player wins.");
+                System.out.println("Dealer busts! Players win.");
                 return;
             }
         }
     }
 
-    private static void determineWinner(Hand playerHand, Hand dealerHand) {
-        int playerValue = playerHand.getValue();
+    private static void determineWinners(List<Player> players, List<Hand> playerHands, Hand dealerHand) {
         int dealerValue = dealerHand.getValue();
 
-        System.out.println("Player's final hand: " + playerHand);
         System.out.println("Dealer's final hand: " + dealerHand);
 
-        if (playerValue > dealerValue && !playerHand.isBust()) {
-            System.out.println("Player wins!");
-        } else if (dealerValue > playerValue && !dealerHand.isBust()) {
-            System.out.println("Dealer wins!");
-        } else if (playerValue == dealerValue) {
-            System.out.println("It's a tie!");
+        for (int i = 0; i < players.size(); i++) {
+            Player player = players.get(i);
+            Hand playerHand = playerHands.get(i);
+            int playerValue = playerHand.getValue();
+
+            System.out.println(player.getName() + "'s final hand: " + playerHand);
+
+            if (playerHand.isBust()) {
+                System.out.println(player.getName() + " busts! Dealer wins.");
+            } else if (dealerHand.isBust() || playerValue > dealerValue) {
+                System.out.println(player.getName() + " wins!");
+            } else if (dealerValue > playerValue) {
+                System.out.println("Dealer wins against " + player.getName() + "!");
+            } else {
+                System.out.println(player.getName() + " ties with the dealer.");
+            }
         }
     }
 }
