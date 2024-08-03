@@ -4,10 +4,6 @@
  */
 package project;
 
-/**
- *
- * @author akshi
- */
 public class Card {
     private final Rank rank;
     private final Suit suit;
@@ -30,5 +26,3 @@ public class Card {
         return rank + " of " + suit;
     }
 }
-
-
