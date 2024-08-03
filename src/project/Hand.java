@@ -4,10 +4,6 @@
  */
 package project;
 
-/**
- *
- * @author akshi
- */
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,3 +46,4 @@ public class Hand {
         return cards.toString() + " (Value: " + getValue() + ")";
     }
 }
+
