@@ -4,10 +4,6 @@
  */
 package project;
 
-/**
- *
- * @author akshi
- */
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,3 +29,4 @@ public class Deck {
         return cards.remove(cards.size() - 1);
     }
 }
+
